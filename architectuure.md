@@ -46,16 +46,17 @@ graph TB
     B -- "2. API Request" --> C
     C -- "3. Upload Handling" --> F
     F -- "4. Store Raw Video" --> D
-    D -- "5. Process Video" --> G
-    G -- "6. Extract Frames" --> H
-    H -- "7. Store Keyframes" --> E
-    H -- "8. Orchestrate AI" --> I
-    I -- "9. Analyze Frames" --> K
-    K -- "10. AI Results" --> I
-    I -- "11. Store Results" --> J
-    J -- "12. Retrieve Results" --> F
-    F -- "13. Deliver to Clients" --> L
-    L -- "14. Client Requests" --> B
+    D -- "5. Record Event Info" --> J
+    F -- "6. Process Video" --> G
+    G -- "7. Extract Frames" --> H
+    H -- "8. Store Keyframes" --> E
+    H -- "9. Orchestrate AI" --> I
+    I -- "10. Analyze Frames" --> K
+    K -- "11. AI Results" --> I
+    I -- "12. Update Results" --> J
+    J -- "13. Retrieve Results" --> F
+    F -- "14. Deliver to Clients" --> L
+    L -- "15. Query API Request" --> B
 ```
 
 ## Component Explanations
@@ -75,8 +76,8 @@ graph TB
 
 #### Compute Layer
 - **cabin-sentry-service - EKS**: Main Spring Boot application deployed on AWS Elastic Kubernetes Service
-- **Video Processing Service**: Handles video decoding, validation, and processing
-- **Frame Extraction Service**: Extracts keyframes from videos for efficient AI analysis
+- **Video Processing Service**: Handles video decoding, validation, and processing ([Detailed Flow](./video_processing_flow.md))
+- **Frame Extraction Service**: Extracts keyframes from videos for efficient AI analysis ([Detailed Flow](./frame_extraction_flow.md))
 - **AI Orchestration Service**: Manages AI processing workflow and result aggregation
 
 #### Database Layer
@@ -94,16 +95,38 @@ graph TB
 2. **API Request**: API Gateway routes the request through Load Balancer
 3. **Upload Handling**: cabin-sentry-service receives and processes the upload
 4. **Store Raw Video**: Raw videos are stored in S3 Storage for persistence
-5. **Process Video**: Video Processing Service retrieves videos from S3 for processing
-6. **Extract Frames**: Frame Extraction Service extracts keyframes from videos
-7. **Store Keyframes**: Extracted keyframes are stored in S3 for AI processing
-8. **Orchestrate AI**: AI Orchestration Service manages the AI analysis workflow
-9. **Analyze Frames**: Individual keyframes are sent to Sensenova AI Model for analysis
-10. **AI Results**: AI analysis results are returned to AI Orchestration Service
-11. **Store Results**: Processed AI results are stored in MySQL RDS database
-12. **Retrieve Results**: cabin-sentry-service retrieves results from database for client requests
-13. **Deliver to Clients**: Formatted results are delivered to Mobile/Web clients
-14. **Client Requests**: Clients make requests for analysis results through API Gateway
+5. **Record Event Info**: Event information is recorded in MySQL database with initial status (after successful video storage)
+6. **Process Video**: Video Processing Service retrieves videos from S3 for processing
+7. **Extract Frames**: Frame Extraction Service extracts keyframes from videos
+8. **Store Keyframes**: Extracted keyframes are stored in S3 for AI processing
+9. **Orchestrate AI**: AI Orchestration Service manages the AI analysis workflow
+10. **Analyze Frames**: Individual keyframes are sent to Sensenova AI Model for analysis
+11. **AI Results**: AI analysis results are returned to AI Orchestration Service
+12. **Update Results**: AI Orchestration Service updates the event record with final analysis results
+13. **Retrieve Results**: cabin-sentry-service retrieves results from database for client requests
+14. **Deliver to Clients**: Formatted results are delivered to Mobile/Web clients
+15. **Query API Request**: Clients make requests for analysis results through API Gateway
+
+## API Endpoints
+
+### Upload API
+- **Endpoint**: POST /api/v1/sentry/videos
+- **Purpose**: Receive video uploads from vehicles
+- **Process Flow**:
+  1. Receive video file and metadata from vehicle
+  2. Store video file in S3 Storage
+  3. Only after successful S3 storage, record event information in MySQL database
+  4. Return success response to vehicle
+  5. Trigger asynchronous video processing workflow
+
+### Query API
+- **Endpoint**: GET /api/v1/sentry/events/{eventId}
+- **Purpose**: Retrieve analysis results for specific events
+- **Process Flow**:
+  1. Receive event ID from client application
+  2. Query MySQL database for event information and analysis results
+  3. Format response with event details, AI analysis, and media links
+  4. Return structured response to client
 
 ## Database Access Pattern Correction
 
