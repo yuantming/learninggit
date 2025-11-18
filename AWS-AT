@@ -1,0 +1,53 @@
+```mermaid
+graph TB
+    subgraph "Vehicles"
+        A[Vehicles with Sentry Mode]
+    end
+
+    subgraph "AWS Cloud"
+        subgraph "Ingress"
+            B[API Gateway]
+            C[Application Load Balancer]
+        end
+
+        subgraph "Storage"
+            D[S3 Storage - Raw Videos]
+            E[S3 Storage - Keyframes]
+        end
+
+        subgraph "Compute"
+            F[cabin-sentry-service - EKS]
+            G[Video Processing Service]
+            H[Frame Extraction Service]
+            I[AI Orchestration Service]
+        end
+
+        subgraph "Database"
+            J[MySQL Database - RDS]
+        end
+
+        subgraph "AI/ML"
+            K[Sensenova AI Model]
+        end
+    end
+
+    subgraph "Client Applications"
+        L[Mobile/Web Clients]
+    end
+
+    A -- "1. Video Upload" --> B
+    B -- "2. API Request" --> C
+    C -- "3. Upload Handling" --> F
+    F -- "4. Store Raw Video" --> D
+    D -- "5. Record Event Info" --> J
+    F -- "6. Process Video" --> G
+    G -- "7. Extract Frames" --> H
+    H -- "8. Store Keyframes" --> E
+    H -- "9. Orchestrate AI" --> I
+    I -- "10. Analyze Frames" --> K
+    K -- "11. AI Results" --> I
+    I -- "12. Update Results" --> J
+    J -- "13. Retrieve Results" --> F
+    F -- "14. Deliver to Clients" --> L
+    L -- "15. Query API Request" --> B
+```
