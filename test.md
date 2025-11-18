@@ -1,0 +1,65 @@
+
+graph TD
+    subgraph SaaS (软件即服务)
+        direction LR
+        A[业务应用 1]
+        B[业务应用 2]
+        C[业务应用 N]
+        D[API 网关]
+
+        subgraph "平台运维能力增强"
+            E[统一可观测性平台]
+        end
+
+    end
+
+    subgraph PaaS (平台即服务)
+        direction LR
+        subgraph "EKS 集群"
+            F[控制平面 (AWS 管理)]
+            G[数据平面 (EC2/Fargate)]
+        end
+
+        subgraph "平台运维能力增强"
+            H["指标监控体系 (Prometheus + Grafana)"]
+            I["日志统一管理 (Loki/ELK + Grafana/Kibana)"]
+            J["链路追踪系统 (Jaeger/OpenTelemetry)"]
+        end
+
+        subgraph "云平台服务端基础设施 (Java)"
+            K["<b>项目 Starter (JARs)</b><br/>- web模块<br/>- 持久化模块<br/>- 缓存模块<br/>- 日志模块<br/>- 监控指标模块<br/>- API限流模块<br/>- 通用文档模块<br/>- 权限校验模块<br/>- 系统安全模块<br/>- OpenAPI调用模块<br/>- 对象存储模块"]
+        end
+    end
+
+    subgraph IaaS (基础设施即服务)
+        direction LR
+        L[计算 (EC2/Fargate)]
+        M[网络 (VPC, Subnets, Security Groups)]
+        N[存储 (EBS, S3, EFS)]
+        O[数据库 (RDS, DynamoDB)]
+        P[其他 (IAM, KMS)]
+    end
+
+    %% Styling
+    style SaaS fill:#D6EAF8,stroke:#333,stroke-width:2px
+    style PaaS fill:#D5F5E3,stroke:#333,stroke-width:2px
+    style IaaS fill:#FCF3CF,stroke:#333,stroke-width:2px
+    style E fill:#AED6F1,stroke:#2874A6,stroke-width:2px
+    style H fill:#A9DFBF,stroke:#1E8449,stroke-width:2px
+    style I fill:#A9DFBF,stroke:#1E8449,stroke-width:2px
+    style J fill:#A9DFBF,stroke:#1E8449,stroke-width:2px
+    style K fill:#A9DFBF,stroke:#1E8449,stroke-width:2px
+
+    %% Connections
+    A & B & C --> D
+    D --> G
+
+    E --> H & I & J
+
+    H --> G
+    I --> G
+    J --> G
+
+    G -- Deploys on --> L
+    G -- Uses --> M & N & O & P
+    K -- Deploys as services in --> G
